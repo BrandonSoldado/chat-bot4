@@ -1,15 +1,46 @@
 from bbdd import *
 
+historial = []
 
-def obtener_historial_preguntas(usuario_id):
+def agregar_preguntas_respuestas_al_historial(usuario_id):
+    global historial
     preguntas = obtener_ultimas_preguntas_usuario(usuario_id)
+    respuestas = obtener_ultimas_respuestas_usuario(usuario_id)
     preguntas = list(reversed(preguntas))
-    contador = 1
-    historial = ""
-    for pregunta in preguntas:
-        historial += f"{contador}. {pregunta}\n"
-        contador += 1
-    return historial
+    respuestas = list(reversed(respuestas))
+    for pregunta, respuesta in zip(preguntas, respuestas):
+        historial.append({"role": "user", "content": pregunta})
+        historial.append({"role": "assistant", "content": respuesta})
+
+def cargar_historial(nombre):
+    global historial
+    historial.clear()
+    historial.append({"role": "user", "content": """podes simular ser un chat bot asistente que determina que tipo de hongo hay en una superficie como la pared, techo, ect., quiero que en tu presentacion saludes a este nombre: """+nombre})
+    historial.append({"role": "assistant", "content": mensaje_presentacion(nombre)})
+    
+    historial.append({"role": "user", "content": "Los datos que te doy son inserciones de esta bbdd: " +prompt_bbdd})
+    historial.append({"role": "assistant", "content": "Entendido."})
+
+    historial.append({"role": "user", "content": "En tus respuestas quiero que no menciones a la base de datos, ni me saludes"})
+    historial.append({"role": "assistant", "content": "Entendido."})
+    
+    historial.append({"role": "user", "content": "Solo respondes preguntas relacionadas sobre hongos,sea producto, compras,etc., responde que no tenes informacion sobre ese tema"})
+    historial.append({"role": "assistant", "content": "Entendido."})
+    
+    historial.append({"role": "user", "content": "Si te preguntan con que producto puedo eliminar un hongo o que producto vendes, quiero que le mostres los productos que se relacionan con ese hongo que te preguntaron, queiro que mostres el producto y su precio que esta en la bbdd, el precio mostralo en bolivianos (bs)"})
+    historial.append({"role": "assistant", "content": "Entendido."})
+    
+    historial.append({"role": "user", "content": "Si los datos que te doy para responder no coinciden con la pregunta que te doy, responde usando tus conocimientos"})
+    historial.append({"role": "assistant", "content": "Entendido."})
+
+    historial.append({"role": "user", "content": "No quiero que me mostres los id de los datos que te doy para responder"})
+    historial.append({"role": "assistant", "content": "Entendido."})
+
+
+
+
+
+
 
 def mensaje_presentacion(nombre):
     return "¡Hola "+ nombre+"""! Soy el asistente de detección de hongos, aquí para ayudarte a identificar el tipo de hongo que se encuentra en una superficie. Estoy listo para trabajar contigo.
