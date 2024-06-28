@@ -135,22 +135,6 @@ prompt3 = ChatPromptTemplate.from_messages([
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def generate_proforma_invoice(filename, producto):
     doc = SimpleDocTemplate(filename, pagesize=A4)
     elements = []
