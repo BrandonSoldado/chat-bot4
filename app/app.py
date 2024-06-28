@@ -1,127 +1,86 @@
-<<<<<<< HEAD
 from librerias import *
 
-historial = ""
-id_usuario = 0
-register_llm_provider("groq", ChatGroq)
-chat = ChatGroq(temperature=0.5, groq_api_key="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", model_name="llama3-8b-8192")
-
-def actualizar_prompt():
-    global prompt1
-    global prompt2
-    prompt1 = ChatPromptTemplate.from_messages([
-    ("system", """Eres un asistente virtual que determina que tipo de hongo hay en una superficie como pared, techo, etc. y sobre que 
-    producto sirve para eliminar un hongo"""),
-    
-    ("system", """Si te preguntan que productos vendes o conoces, de la lista que te van a dar busca los productos y precios (los precios estan en bolivianos bs), luego respondele"""),
-    ("system", "Previamente te hice estas preguntas: "+historial),
-    ("human", "Responde a esta pregunta: {pregunta}, quiero que respondas usando estos datos: {datos}")
-    ])
-    prompt2 = ChatPromptTemplate.from_messages([
-    ("system", "Eres un asistente virtual que convierte preguntas a su equivalente en una consulta en postgress usando el lenguaje sql, solo respondes la consulta sql, sin mas texto extra"),
-    ("system", "Conveierte las preguntas a su equivalente en una consulta en postgress, guiandote de esta base de datos: "+prompt_bbdd),
-    ("system", "Los hongos que conoces son los aquellos que estan insertados en la tabla HONGO"),
-    ("system", "El id de este usuario es: " +str(id_usuario)),
-    ("system", "Los productos que vendes para eliminar algun hongo o conoces son todos aquellos que estan insertados en la tabla PRODUCTO, cada vez que te pidan un producto mostra su precio tambien"),
-    ("system", "Previamente te hice estas preguntas: "+historial),
-    ("human", "Esta pregunta: {pregunta}, convertilo a una consulta SQL en postgress."),
-    ])
-
-
-
+os.environ['OPENAI_API_KEY'] = 'sk-proj-9sZ52JPDfVBk1wHNGyraT3BlbkFJPPxeTzV9ezevy9VBjA8g'
+embeddings = OpenAIEmbeddings()
+os.environ['PINECONE_API_KEY'] = 'cee01680-c49f-4a68-90f6-4f1a888900c7'
+index_name = "asistente-virtual"
+docsearch = PineconeVectorStore(index_name=index_name, embedding=embeddings)
 
 prompt1 = ChatPromptTemplate.from_messages([
-    ("system", """Eres un asistente virtual que determina que tipo de hongo hay en una superficie como pared, techo, etc. y sobre que 
-               producto sirve para eliminar un hongo"""),
-    ("system", """Si te preguntan que productos vendes o conoces, de la lista que te van a dar busca los productos y precios (los precios estan en bolivianos bs), luego respondele"""),
-    ("human", "Previamente te hice estas preguntas: "+historial + "Responde a esta pregunta: {pregunta}, quiero que respondas usando estos datos: {datos}")
-])
-prompt2 = ChatPromptTemplate.from_messages([
-    ("system", "Eres un asistente virtual que convierte preguntas a su equivalente en una consulta en postgress usando el lenguaje sql, solo respondes la consulta sql, sin mas texto extra"),
-    ("system", "Conveierte las preguntas a su equivalente en una consulta en postgress, guiandote de esta base de datos: "+prompt_bbdd),
-    ("system", "Los hongos que conoces son los aquellos que estan insertados en la tabla HONGO"),
-    ("system", "El id de este usuario es: " +str(id_usuario)),
-    ("system", "Los productos que vendes para eliminar algun hongo o conoces son todos aquellos que estan insertados en la tabla PRODUCTO, cada vez que te pidan un producto mostra su precio tambien"),
-    ("human", "Previamente te hice estas preguntas: "+historial + "Esta pregunta: {pregunta}, convertilo a una consulta SQL en postgress."),
+    ("system", "Solo respondes: true o false"),
+    ("system", "respondes true: solamente cuando te pida que le des o le envies una factura proforma"),
+    ("system", "respondes false: cuando mencione una factura proforma o hable de cualquier otro tema"),
+    ("system", "Si te preguntan (solo escriben):factura proforma, devolve false"),
+    ("system", "Si te piden una factura o desean o exigen factura, devolve false"),
+    ("system", "Si te piden una factura o desean o exigen proforma, devolve true"),
+    ("human", "{pregunta}")
 ])
 
+
+
+id_usuario = 0
+register_llm_provider("groq", ChatGroq)
+chat = ChatGroq(temperature=0, groq_api_key="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", model_name="llama3-8b-8192")
+chat2 = ChatGroq(temperature=0, groq_api_key="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", model_name="llama3-8b-8192")
+chat3 = ChatGroq(temperature=0, groq_api_key="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", model_name="llama3-8b-8192")
+chat4 = ChatGroq(temperature=0, groq_api_key="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", model_name="llama3-8b-8192")
 
 def ObtenetRespuestaIA(mensaje):
-    actualizar_prompt()
-    chain = prompt2 | chat
-    response = chain.invoke({"pregunta": mensaje})
-    #enviar_pregunta_auxiliar(response.content)
-    sql = EjecutarConsultaSqlGeneral(response.content)
-    print(str(sql))
-    chain = prompt1 | chat
-    response = chain.invoke({"pregunta": mensaje,"datos": sql})
-=======
-from config import *
-
-
-register_llm_provider("groq", ChatGroq)
-chat = ChatGroq(temperature=1, groq_api_key="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", model_name="llama3-70b-8192")
-
-
-prompt = ChatPromptTemplate.from_messages([
-    ("system", "Eres un asistente virtual que responde a preguntas sobre hongos"),
-    ("human", "{text}")
-])
-#chain = prompt | chat
-chain = chat
-def chatbot(mensaje):
+    docs = docsearch.similarity_search(mensaje)
+    print(docs[0].page_content)
+    datos = str(docs[0].page_content)
     global historial
-    historial.append({"role": "user", "content": mensaje})
-    #response = chain.invoke({"text": mensaje})
-    response = chain.invoke(historial)
->>>>>>> 2711317a02654b8e7783c0477da2812f88316273
-    return response.content
+    historial.append({"role": "user", "content": "esta es la pregunta: "+mensaje+", respondele usando estos datos: "+datos})
+    response = chat.invoke(historial)
+    return str(response.content)
 
+def DeterminarSiEsFactura(mensaje):
+    chain = prompt1 | chat2
+    response = chain.invoke({"pregunta": mensaje})
+    return str(response.content)
 
+def ObtenerListaProductos(mensaje):
+    chain = prompt2 | chat3
+    response = chain.invoke({"pregunta": mensaje})
+    return str(response.content)
+
+def TodosProductosEstanLista(mensaje):
+    chain = prompt3 | chat4
+    response = chain.invoke({"pregunta": mensaje})
+    return str(response.content)
 
 
 app = Flask(__name__)
 @app.route("/webhook", methods=["POST"])
 def webhook():
-<<<<<<< HEAD
     global historial
     global id_usuario
     pregunta = request.form.get("Body")
     telefono_usuario = request.form.get("From")
+    nombre_usuario = obtener_nombre_usuario(telefono_usuario)
     if pregunta.lower() == "confirm":
         id_usuario = obtener_id_usuario(telefono_usuario)
-        nombre_usuario = obtener_nombre_usuario(telefono_usuario)
         respuesta_chat = mensaje_presentacion(nombre_usuario) 
     else:
-        id_usuario = obtener_id_usuario(telefono_usuario)
-        historial = obtener_historial_preguntas(id_usuario)
-        respuesta_chat = ObtenetRespuestaIA(pregunta)  
-        insertar_conversacion(pregunta,respuesta_chat,obtener_fecha_actual(),obtener_hora_actual(),id_usuario) 
+        if (DeterminarSiEsFactura(pregunta).lower()=="true"):
+            pregunta22 = TodosProductosEstanLista(pregunta)
+            respuesta_chat = ObtenerListaProductos(pregunta22)
+            texto_limpio = respuesta_chat.replace('\n', '').replace(' ', '')
+            lista_de_listas = literal_eval(texto_limpio)
+            generate_proforma_invoice("factura_proforma.pdf",lista_de_listas)              
+            SubirPDFazure()
+            EnviarPDF(telefono_usuario,ObtenerURLpdf())
+            EliminarPDFplataforma()
+            respuesta_chat = "Aqui esta tu factura proforma!"
+        else:
+            id_usuario = obtener_id_usuario(telefono_usuario)
+            cargar_historial(nombre_usuario)
+            agregar_preguntas_respuestas_al_historial(id_usuario)
+            respuesta_chat = ObtenetRespuestaIA(pregunta)   
+            insertar_conversacion(pregunta,respuesta_chat,obtener_fecha_actual(),obtener_hora_actual(),id_usuario) 
     respuesta = MessagingResponse()
     respuesta.message(respuesta_chat)
-    print(respuesta_chat)
     return str(respuesta)
-=======
-    message_body = request.form.get("Body")
-    from_number = request.form.get("From")
-    nombre = obtener_nombre_usuario(from_number)
-    if message_body.lower() == "confirm":
-        respuesta = mensaje_presentacion(nombre) 
-    else:
-        id_usuario = obtener_id_usuario(from_number)
-        cargar_historial(nombre)
-        agregar_preguntas_respuestas_al_historial(id_usuario)     
-        respuesta = chatbot(message_body)  
-        insertar_conversacion(message_body,respuesta,obtener_fecha_actual(),obtener_hora_actual(),id_usuario) 
-    resp = MessagingResponse()
-    resp.message(respuesta)
-    print(message_body)
-    print(respuesta)
-    return str(resp)
-
-
->>>>>>> 2711317a02654b8e7783c0477da2812f88316273
-
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
